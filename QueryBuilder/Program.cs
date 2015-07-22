@@ -11,26 +11,44 @@ namespace QueryBuilder
     {
         private static void Main()
         {
-            var qc = new QueryCondition<Person>
+            var qObject = new QueryObject
             {
-                PropertyName = "Name",
-                Operation = "Contains",
-                Value = "ana"
+                QueryConditions = new List<QueryCondition>
+                {
+                    new QueryCondition
+                    {
+                        PropertyName = "Name",
+                        Operation = "Contains",
+                        Value = "Ana"
+                    },
+                    new QueryCondition
+                    {
+                        PropertyName = "Surname",
+                        Operation = "Equal",
+                        Value = "Gradinariu"
+                    },
+                    new QueryCondition
+                    {
+                        PropertyName = "Age",
+                        Operation = "Equal",
+                        Value = 3
+                    }
+                }
             };
 
             var list = new List<Person>
             {
-                new Person {Name = "B"},
-                new Person {Name = "A"},
-                new Person {Name = "Ana-Maria"}
+                new Person {Name = "B", Surname = "G", Age = 30},
+                new Person {Name = "A",Surname = "G1", Age = 35},
+                new Person {Name = "Ana-Maria",Surname = "Gradinariu", Age = 3},
             };
-            var ex = qc.BuildExpression().Compile();
             var watch = new Stopwatch();
             watch.Start();
             for (var i = 0; i < 100000; i++)
             {
-                var s = list.Where(p => p.Name.Contains("ana")).ToList();
-                //var s = list.Where(ex).ToList();
+                //var s = list.Where(p => p.Name.Contains("ana")).ToList();
+                var ex = qObject.BuildExpression<Person>().Compile();
+                var s = list.Where(ex).ToList();
             }
 
             watch.Stop();
@@ -40,13 +58,18 @@ namespace QueryBuilder
         public class Person
         {
             public string Name { get; set; }
+            public int Age { get; set; }
+            public string Surname { get; set; }
         }
     }
 
-
-    public class QueryCondition<T>
+    public class QueryObject
     {
-        public T TargetType { get; set; }
+        public List<QueryCondition> QueryConditions { get; set; }
+    }
+
+    public class QueryCondition
+    {
         public string PropertyName { get; set; }
         public object Value { get; set; }
         public string Operation { get; set; }
@@ -54,7 +77,17 @@ namespace QueryBuilder
 
     public static class QueryExtentions
     {
-        public static Expression<Func<T, bool>> BuildExpression<T>(this QueryCondition<T> condition)
+        public static Expression<Func<T, bool>> BuildExpression<T>(this QueryObject condition)
+        {
+            Expression<Func<T, bool>> expression = p => true;
+            foreach (var queryCondition in condition.QueryConditions)
+            {
+                expression = expression.And(queryCondition.BuildExpression<T>());
+            }
+            return expression;
+        }
+
+        public static Expression<Func<T, bool>> BuildExpression<T>(this QueryCondition condition)
         {
             switch (condition.Operation)
             {
@@ -64,25 +97,29 @@ namespace QueryBuilder
                 case "LessThan":
                 case "LessThanOrEqual":
                 case "NotEqual":
-                    return BuildBinaryExpression(condition);
+                    return BuildBinaryExpression<T>(condition);
                 case "Contains":
-                    return BuildMethodCallExpression(condition);
+                    return BuildMethodCallExpression<T>(condition);
                 default:
                     throw new NotImplementedException(condition.Operation + "Not implemented!!");
             }
         }
 
-        private static Expression<Func<T, bool>> BuildMethodCallExpression<T>(QueryCondition<T> condition)
+        private static Expression<Func<T, bool>> BuildMethodCallExpression<T>(QueryCondition condition)
         {
-            var parameterExp = Expression.Parameter(typeof(T), "p");
-            var property = Expression.Property(parameterExp, condition.PropertyName);
-            var contains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-            var someValue = Expression.Constant(condition.Value, typeof(string));
-            var containsMethodExp = Expression.Call(property, contains, someValue);
-            return Expression.Lambda<Func<T, bool>>(containsMethodExp, parameterExp);
+            if (condition.Operation == "Contains")
+            {
+                var parameterExp = Expression.Parameter(typeof (T), "p");
+                var property = Expression.Property(parameterExp, condition.PropertyName);
+                var contains = typeof (string).GetMethod("Contains", new[] {typeof (string)});
+                var someValue = Expression.Constant(condition.Value, typeof (string));
+                var containsMethodExp = Expression.Call(property, contains, someValue);
+                return Expression.Lambda<Func<T, bool>>(containsMethodExp, parameterExp);
+            }
+            throw new NotImplementedException();
         }
 
-        private static Expression<Func<T, bool>> BuildBinaryExpression<T>(QueryCondition<T> condition)
+        private static Expression<Func<T, bool>> BuildBinaryExpression<T>(QueryCondition condition)
         {
             var type = typeof(T);
             var prop = GetProperty<T>(condition.PropertyName);
@@ -134,6 +171,52 @@ namespace QueryBuilder
         private static PropertyInfo GetProperty<T>(string propertyName)
         {
             return typeof(T).GetProperty(propertyName);
+        }
+    }
+
+    public class ReplaceParameterVisitor<TResult> : ExpressionVisitor
+    {
+        private readonly ParameterExpression _parameter;
+        private readonly Expression _replacement;
+
+        public ReplaceParameterVisitor(ParameterExpression parameter, Expression replacement)
+        {
+            _parameter = parameter;
+            _replacement = replacement;
+        }
+
+        public Expression<TResult> Visit<T>(Expression<T> node)
+        {
+            var parameters = node.Parameters.Where(p => p != _parameter);
+            return Expression.Lambda<TResult>(Visit(node.Body), parameters);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            return node == _parameter ? _replacement : base.VisitParameter(node);
+        }
+    }
+
+    public static class ExpressionExtensions
+    {
+        public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> left,
+            Expression<Func<T, bool>> right)
+        {
+            return Expression.Lambda<Func<T, bool>>(Expression.AndAlso(left.Body, right.WithParametersOf(left).Body),
+                left.Parameters);
+        }
+
+        public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> left,
+            Expression<Func<T, bool>> right)
+        {
+            return Expression.Lambda<Func<T, bool>>(Expression.OrElse(left.Body, right.WithParametersOf(left).Body),
+                left.Parameters);
+        }
+
+        private static Expression<Func<TResult>> WithParametersOf<T, TResult>(this Expression<Func<T, TResult>> left,
+            Expression<Func<T, TResult>> right)
+        {
+            return new ReplaceParameterVisitor<Func<TResult>>(left.Parameters[0], right.Parameters[0]).Visit(left);
         }
     }
 }
