@@ -19,7 +19,7 @@ namespace QueryBuilder
                     {
                         PropertyName = "Name",
                         Operation = "Contains",
-                        Value = "Ana"
+                        Value = "na"
                     },
                     new QueryCondition
                     {
@@ -30,8 +30,8 @@ namespace QueryBuilder
                     new QueryCondition
                     {
                         PropertyName = "Age",
-                        Operation = "Equal",
-                        Value = 3
+                        Operation = "LessThanOrEqual",
+                        Value = 10
                     }
                 }
             };
@@ -40,7 +40,8 @@ namespace QueryBuilder
             {
                 new Person {Name = "B", Surname = "G", Age = 30},
                 new Person {Name = "A",Surname = "G1", Age = 35},
-                new Person {Name = "Ana-Maria",Surname = "Gradinariu", Age = 3},
+                new Person {Name = "Ana-Maria", Surname = "Gradinariu", Age = 3},
+                new Person {Name = "Maya-Ioana",Surname = "Gradinariu", Age = 1},
             };
             var watch = new Stopwatch();
             watch.Start();
