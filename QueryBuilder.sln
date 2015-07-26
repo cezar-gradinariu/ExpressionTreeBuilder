@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryBuilder", "QueryBuilder\QueryBuilder.csproj", "{71BFEF1D-C925-40A7-8395-31448BD4DD8A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryBuilder.UnitTests", "QueryBuilder.UnitTests\QueryBuilder.UnitTests.csproj", "{08D2E205-82FD-4069-9BE0-C2BBEBE0CD3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{71BFEF1D-C925-40A7-8395-31448BD4DD8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71BFEF1D-C925-40A7-8395-31448BD4DD8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71BFEF1D-C925-40A7-8395-31448BD4DD8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D2E205-82FD-4069-9BE0-C2BBEBE0CD3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D2E205-82FD-4069-9BE0-C2BBEBE0CD3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D2E205-82FD-4069-9BE0-C2BBEBE0CD3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D2E205-82FD-4069-9BE0-C2BBEBE0CD3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
