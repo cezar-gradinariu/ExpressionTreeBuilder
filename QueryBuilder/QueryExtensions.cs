@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using QueryBuilder.Entities;
 
 namespace QueryBuilder
 {
     public static class QueryExtensions
     {
-        public static Expression<Func<T, bool>> BuildExpression<T>(this QueryObject condition)
+        public static Expression<Func<T, bool>> BuildWhereExpression<T>(this QueryObject condition)
         {
             Expression<Func<T, bool>> expression = p => true;
             foreach (var queryCondition in condition.QueryConditions)
@@ -14,6 +17,26 @@ namespace QueryBuilder
                 expression = expression.And(queryCondition.BuildExpression<T>());
             }
             return expression;
+        }
+
+       public static MethodCallExpression GetMethodCallExpression<T>(this QueryObject condition, IQueryable<T> queryable )
+        {
+            var where = BuildWhereExpression<T>(condition);
+
+            var whereCallExpression = Expression.Call(
+               typeof(Queryable),
+               "Where",
+               new[] { queryable.ElementType },
+               queryable.Expression,
+               where);
+
+            return QueryableExtensions1.OrderBy1<T>(whereCallExpression, condition.GridCriteria.SortCriteria);
+        }
+
+        public static IQueryable<T> GetQuery<T>(this IQueryable<T> query, QueryObject queryObject)
+        {
+            var methodCallExpression = queryObject.GetMethodCallExpression(query);
+            return query.Provider.CreateQuery<T>(methodCallExpression);
         }
 
         public static Expression<Func<T, bool>> BuildExpression<T>(this QueryObject.QueryCondition condition)
@@ -50,7 +73,7 @@ namespace QueryBuilder
 
         private static Expression<Func<T, bool>> BuildBinaryExpression<T>(QueryObject.QueryCondition condition)
         {
-            var type = typeof(T);
+            var type = typeof (T);
             var prop = GetProperty<T>(condition.PropertyName);
             var parameterExpression = Expression.Parameter(type, "p");
             Expression left = Expression.Property(parameterExpression, prop);
@@ -99,7 +122,7 @@ namespace QueryBuilder
 
         private static PropertyInfo GetProperty<T>(string propertyName)
         {
-            return typeof(T).GetProperty(propertyName);
+            return typeof (T).GetProperty(propertyName);
         }
     }
 }

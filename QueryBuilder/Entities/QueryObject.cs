@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace QueryBuilder
+namespace QueryBuilder.Entities
 {
     public class QueryObject
     {

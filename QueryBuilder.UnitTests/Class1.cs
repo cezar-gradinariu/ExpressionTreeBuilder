@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
+using QueryBuilder.Entities;
 
 namespace QueryBuilder.UnitTests
 {
@@ -56,7 +57,7 @@ namespace QueryBuilder.UnitTests
             new Person {Name = "Maya-Ioana", Surname = "Gradinariu", Age = 1},
             new Person {Name = "B", Surname = "G", Age = 30},
             new Person {Name = "A", Surname = "G1", Age = 35},
-            new Person {Name = "Ana-Maria", Surname = "Gradinariu", Age = 3},
+            new Person {Name = "Ana-Marid", Surname = "Gradinariu", Age = 3},
             new Person {Name = "Maya-Ioana", Surname = "Gradinariu", Age = 1},
         };
 
@@ -89,7 +90,7 @@ namespace QueryBuilder.UnitTests
             Console.WriteLine("Direct lambda for {0} calls took {1}ms.", noOfCalls, watch.ElapsedMilliseconds);
 
             watch.Restart();
-            var ex = _qObject.BuildExpression<Person>().Compile();
+            var ex = _qObject.BuildWhereExpression<Person>().Compile();
             for (var i = 0; i < noOfCalls; i++)
             {
                 var s =
@@ -104,7 +105,7 @@ namespace QueryBuilder.UnitTests
             {
                 var s =
                     _list.AsQueryable()
-                        .Where(_qObject.BuildExpression<Person>().Compile())
+                        .Where(_qObject.BuildWhereExpression<Person>().Compile())
                         .AsQueryable()
                         .GetSortedPageAsList(_qObject.GridCriteria)
                         .ToList();
@@ -119,13 +120,22 @@ namespace QueryBuilder.UnitTests
             {
                 var s =
                     _list.AsQueryable()
-                        .Where(_qObject.BuildExpression<Person>())
+                        .Where(_qObject.BuildWhereExpression<Person>())
                         .AsQueryable()
                         .GetSortedPageAsList(_qObject.GridCriteria)
                         .ToList();
             }
             watch.Stop();
             Console.WriteLine("Call with 'where expression' not compiled for {0} calls took {1}ms.", noOfCalls,
+                watch.ElapsedMilliseconds);
+
+            watch.Restart();
+            for (var i = 0; i < noOfCalls; i++)
+            {
+                var s = _list.AsQueryable().GetQuery(_qObject).ToList();
+            }
+            watch.Stop();
+            Console.WriteLine("Call with 'pure expression' trees for {0} calls took {1}ms.", noOfCalls,
                 watch.ElapsedMilliseconds);
         }
     }

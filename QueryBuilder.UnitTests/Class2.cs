@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
+using QueryBuilder.Entities;
 
 namespace QueryBuilder.UnitTests
 {
@@ -45,6 +46,7 @@ namespace QueryBuilder.UnitTests
                 }
             }
         };
+
         public class Company
         {
             public Company(string name, int stars)
@@ -82,7 +84,7 @@ namespace QueryBuilder.UnitTests
             Console.WriteLine("Direct lambda for {0} calls took {1}ms.", noOfCalls, watch.ElapsedMilliseconds);
 
             watch.Restart();
-            var ex = _qObject.BuildExpression<Company>().Compile();
+            var ex = _qObject.BuildWhereExpression<Company>().Compile();
             for (var i = 0; i < noOfCalls; i++)
             {
                 var s =
@@ -97,7 +99,7 @@ namespace QueryBuilder.UnitTests
             {
                 var s =
                     List.AsQueryable()
-                        .Where(_qObject.BuildExpression<Company>().Compile())
+                        .Where(_qObject.BuildWhereExpression<Company>().Compile())
                         .AsQueryable()
                         .GetSortedPageAsList(_qObject.GridCriteria)
                         .ToList();
@@ -112,7 +114,7 @@ namespace QueryBuilder.UnitTests
             {
                 var s =
                     List.AsQueryable()
-                        .Where(_qObject.BuildExpression<Company>())
+                        .Where(_qObject.BuildWhereExpression<Company>())
                         .AsQueryable()
                         .GetSortedPageAsList(_qObject.GridCriteria)
                         .ToList();
