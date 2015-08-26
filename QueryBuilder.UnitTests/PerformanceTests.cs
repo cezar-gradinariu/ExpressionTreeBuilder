@@ -8,7 +8,7 @@ using QueryBuilder.Entities;
 namespace QueryBuilder.UnitTests
 {
     [TestFixture]
-    public class Class1
+    public class PerformanceTests
     {
         private readonly QueryObject _qObject = new QueryObject
         {
@@ -132,7 +132,7 @@ namespace QueryBuilder.UnitTests
             watch.Restart();
             for (var i = 0; i < noOfCalls; i++)
             {
-                var s = _list.AsQueryable().GetQuery(_qObject).ToList();
+                var s = _list.AsQueryable().GetQuery(_qObject).Skip(1).ToList();
             }
             watch.Stop();
             Console.WriteLine("Call with 'pure expression' trees for {0} calls took {1}ms.", noOfCalls,

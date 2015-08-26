@@ -8,7 +8,7 @@ using QueryBuilder.Entities;
 namespace QueryBuilder.UnitTests
 {
     [TestFixture]
-    public class Class2
+    public class PerformanceTests2
     {
         private static readonly List<Company> List = new List<Company>
         {

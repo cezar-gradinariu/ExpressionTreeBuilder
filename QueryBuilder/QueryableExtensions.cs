@@ -1,30 +1,29 @@
-﻿using System;
+﻿using QueryBuilder.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using QueryBuilder.Entities;
 
 namespace QueryBuilder
 {
     public static class QueryableExtensions
     {
-        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> source, string property)
+        private static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> source, string property)
         {
             return ApplyOrder(source, property, "OrderBy");
         }
 
-        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> source, string property)
+        private static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> source, string property)
         {
             return ApplyOrder(source, property, "OrderByDescending");
         }
 
-        public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> source, string property)
+        private static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> source, string property)
         {
             return ApplyOrder(source, property, "ThenBy");
         }
 
-        public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> source, string property)
+        private static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> source, string property)
         {
             return ApplyOrder(source, property, "ThenByDescending");
         }
@@ -55,7 +54,7 @@ namespace QueryBuilder
             return (IOrderedQueryable<T>) result;
         }
         
-        public static IQueryable<T> GetSortedPage<T>(this IQueryable<T> source, GridCriteria gridCriteria)
+        private static IQueryable<T> GetSortedPage<T>(this IQueryable<T> source, GridCriteria gridCriteria)
         {
             if (source == null || gridCriteria == null)
             {
@@ -71,7 +70,7 @@ namespace QueryBuilder
             return source == null ? null : GetSortedPage(source, gridCriteria).ToList();
         }
 
-        public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, List<SortCriteria> sortData)
+        private static IQueryable<T> OrderBy<T>(this IQueryable<T> source, List<SortCriteria> sortData)
         {
             if (sortData == null || sortData.Count == 0)
             {
